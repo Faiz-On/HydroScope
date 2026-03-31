@@ -1,0 +1,16 @@
+:root{
+ --site-bg: #000;
+ --site-color: #eee;
+}
+body{
+    background-color: var(--site-bg);
+    color: var(--site-color);
+}
+button{
+    height: 10vh;
+    width: 20vb;
+}
+.logo{
+    height: 30vh;
+    width: 30vb;
+}
