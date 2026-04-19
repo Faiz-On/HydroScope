@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hydroscope</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
-    <script src="script.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HydroScope — Pakistan Water Intelligence</title>
+<link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style-main.css">
 </head>
-<body bgcolor="white">
-    <img class = "logo" src="/assets/Logo.png" alt="">
-    <button onclick="toggleTheme()">Toggle Theme</button>
+
+<body>
+<div class="scanlines"></div>
+<div class="grid-bg"></div>
+<div id="root"></div>
+<script type="text/babel" src="app.jsx"></script>
 </body>
 </html>

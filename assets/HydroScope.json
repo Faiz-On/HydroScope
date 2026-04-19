@@ -1,0 +1,25 @@
+{
+  "type": "Compass Connections",
+  "version": {
+    "$numberInt": "1"
+  },
+  "connections": [
+    {
+      "id": "cfb2f319-0c06-4741-8fd9-f038f5b41ed2",
+      "lastUsed": {
+        "$date": {
+          "$numberLong": "1776267899631"
+        }
+      },
+      "favorite": {
+        "name": "HydroScopeData",
+        "color": "color3"
+      },
+      "savedConnectionType": "favorite",
+      "connectionOptions": {
+        "connectionString": "mongodb://localhost:27017/",
+        "oidc": {}
+      }
+    }
+  ]
+}
