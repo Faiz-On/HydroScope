@@ -73,6 +73,12 @@ body {
     box-shadow: 0 2px 20px rgba(0, 200, 255, 0.1);
 }
 
+.logoimg img{
+    width: 32px;
+    height: 32px;
+    margin-top: 5px;
+}
+
 .logo {
     font-family: 'Orbitron', monospace;
     font-size: 17px;
@@ -153,13 +159,15 @@ body {
 .map-svg {
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    display: block;
 }
 
 .map-corner {
     position: absolute;
     font-family: 'Share Tech Mono', monospace;
     font-size: 9px;
-    color: rgba(0, 200, 255, 0.2);
+    color: rgb(0, 147, 255);
     letter-spacing: 1px;
     line-height: 1.7;
 }

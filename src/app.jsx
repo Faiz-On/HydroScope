@@ -1,35 +1,94 @@
-const { useState, useCallback } = React;
+const { useState, useCallback, useEffect } = React;
 
-const CITIES = [
-  {id:1, name:"Quetta",     lat:30.18, lng:67.00, alt:1680,  slope:1.05,    rain:240,   area:3501000000,  rc:0.60, wu:59,  temp:18,   water:909218,       pop:1565546,  precip:244,  px:193, py:298},
-  {id:2, name:"Gwadar",     lat:25.12, lng:62.33, alt:150,   slope:0.15,    rain:87.5,  area:12637000000, rc:0.44, wu:55,  temp:25,   water:141000000,    pop:305160,   precip:87.5, px:108, py:388},
-  {id:3, name:"Hyderabad",  lat:25.39, lng:68.37, alt:536,   slope:0.0268,  rain:40,    area:650000000,   rc:0.80, wu:96.2,temp:35,   water:372700000,    pop:10142000, precip:40,   px:285, py:382},
-  {id:4, name:"Multan",     lat:30.20, lng:71.48, alt:215,   slope:0.01075, rain:69,    area:560000000,   rc:0.75, wu:29,  temp:34,   water:143000000,    pop:2313000,  precip:69,   px:335, py:288},
-  {id:5, name:"Karachi",    lat:24.86, lng:67.00, alt:8,     slope:0.000089,rain:65,    area:3527000000,  rc:0.73, wu:54.5,temp:26.6, water:2955000000,   pop:20382881, precip:65,   px:218, py:408},
-  {id:6, name:"Sukkur",     lat:27.72, lng:68.82, alt:67,    slope:0.00609, rain:164.6, area:5165000000,  rc:0.96, wu:80,  temp:27,   water:40900000,     pop:563851,   precip:164.6,px:280, py:345},
-  {id:7, name:"Islamabad",  lat:33.70, lng:73.04, alt:520,   slope:1.33,    rain:1320,  area:906500000,   rc:0.80, wu:273, temp:21.5, water:89800000000,  pop:1108872,  precip:1500, px:385, py:218},
-  {id:8, name:"Rawalpindi", lat:33.58, lng:73.07, alt:508,   slope:0.67,    rain:1200,  area:479000000,   rc:0.80, wu:289, temp:21.7, water:74700000000,  pop:3357612,  precip:1600, px:378, py:228},
-  {id:9, name:"Faisalabad", lat:31.45, lng:73.14, alt:186,   slope:0.086,   rain:400,   area:5856000000,  rc:0.50, wu:150, temp:24.7, water:183000000000, pop:3691999,  precip:1150, px:360, py:262},
-  {id:10,name:"Sialkot",    lat:32.49, lng:74.52, alt:256,   slope:0.5,     rain:960,   area:135000000,   rc:0.60, wu:121, temp:22.6, water:20000000000,  pop:911817,   precip:1100, px:405, py:245},
-  {id:11,name:"Bahawalpur", lat:29.35, lng:71.69, alt:118,   slope:0.1,     rain:300,   area:246000000,   rc:0.35, wu:110, temp:26.1, water:8000000000,   pop:903795,   precip:325,  px:338, py:308},
-  {id:12,name:"Gujranwala", lat:32.16, lng:74.19, alt:226,   slope:0.01,    rain:60,    area:240000000,   rc:0.675,wu:130, temp:24,   water:111000000,    pop:2610000,  precip:675,  px:392, py:252},
-  {id:13,name:"Lahore",     lat:31.55, lng:74.34, alt:227.5, slope:0.006,   rain:70.3,  area:404000000,   rc:0.725,wu:200, temp:24.5, water:2390000000,   pop:15238000, precip:650,  px:396, py:268},
-  {id:14,name:"Abbottabad", lat:34.15, lng:73.22, alt:1256,  slope:0.157,   rain:69,    area:32000000,    rc:0.625,wu:100, temp:16.5, water:14400000,     pop:300000,   precip:1300, px:382, py:205},
-  {id:15,name:"Gilgit",     lat:35.92, lng:74.31, alt:1500,  slope:0.273,   rain:45,    area:18000000,    rc:0.55, wu:85,  temp:12,   water:4540000,      pop:180000,   precip:200,  px:385, py:168},
-  {id:16,name:"Skardu",     lat:35.30, lng:75.63, alt:2363,  slope:0.00609, rain:50,    area:77000000,    rc:0.50, wu:80,  temp:11,   water:11700000,     pop:110000,   precip:175,  px:432, py:175},
-];
-
-const MAX={
-  rain:Math.max(...CITIES.map(c=>c.rain)),
-  water:Math.max(...CITIES.map(c=>c.water)),
-  pop:Math.max(...CITIES.map(c=>c.pop)),
-  wu:Math.max(...CITIES.map(c=>c.wu)),
-  temp:Math.max(...CITIES.map(c=>c.temp)),
-  alt:Math.max(...CITIES.map(c=>c.alt)),
-  precip:Math.max(...CITIES.map(c=>c.precip)),
-  rc:1,
-  area:Math.max(...CITIES.map(c=>c.area)),
+// Pakistan geographic bounds (latitude, longitude)
+const PAK_BOUNDS = {
+  minLat: 23.6, maxLat: 37.1,
+  minLng: 60.8, maxLng: 77.0
 };
+
+// Calculate pixel position from lat/lng for new scaled map
+// Returns SVG viewBox coordinates (0-2362 x 0-1888)
+function latLngToPx(lat, lng) {
+  // Map geographic coordinates to SVG viewBox space directly
+  const svgX = ((lng - PAK_BOUNDS.minLng) / (PAK_BOUNDS.maxLng - PAK_BOUNDS.minLng)) * 2362;
+  const svgY = ((PAK_BOUNDS.maxLat - lat) / (PAK_BOUNDS.maxLat - PAK_BOUNDS.minLat)) * 1888;
+  
+  return {
+    px: svgX,
+    py: svgY
+  };
+}
+
+// Calculate city coordinates from lat/lng
+const CITY_LAT_LNG = {
+  'Quetta': {lat: 30.18, lng: 66.98},
+  'Gwadar': {lat: 25.18, lng: 62.30},
+  'Hyderabad': {lat: 25.37, lng: 68.35},
+  'Multan': {lat: 30.20, lng: 71.44},
+  'Karachi': {lat: 24.86, lng: 66.99},
+  'Sukkur': {lat: 27.71, lng: 68.82},
+  'Islamabad': {lat: 33.73, lng: 73.16},
+  'Rawalpindi': {lat: 33.59, lng: 73.21},
+  'Faisalabad': {lat: 31.41, lng: 72.99},
+  'Sialkot': {lat: 32.49, lng: 74.53},
+  'Bahawalpur': {lat: 29.54, lng: 71.68},
+  'Gujranwala': {lat: 32.16, lng: 74.18},
+  'Lahore': {lat: 31.54, lng: 74.31},
+  'Abbottabad': {lat: 34.15, lng: 73.22},
+  'Gilgit': {lat: 35.93, lng: 74.31},
+  'Skardu': {lat: 35.30, lng: 75.57},
+};
+
+// Convert to pixel coordinates
+const CITY_COORDINATES = Object.entries(CITY_LAT_LNG).reduce((acc, [name, coords]) => {
+  acc[name] = latLngToPx(coords.lat, coords.lng);
+  return acc;
+}, {});
+
+// Helper function to extract numeric values from MongoDB extended types
+function extractNumber(value) {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'object' && value.$numberLong) return parseInt(value.$numberLong);
+  if (typeof value === 'object' && value.$numberInt) return parseInt(value.$numberInt);
+  return value;
+}
+
+// Transform MongoDB data to app format
+function transformCityData(mongoData) {
+  return mongoData.map(item => ({
+    id: item['Area No'][''],
+    name: item['Name'],
+    lat: item['Latitude'],
+    lng: item['Longitude'],
+    alt: item['Altitude (m)'],
+    slope: item['Slope '],
+    rain: item['Rainfall_Intensity (mm)'],
+    area: extractNumber(item['Area (m^2)']),
+    rc: item['Runoff_Coefficient'],
+    wu: item['Water_Use (litre per capita)'],
+    temp: item['Average_Temperature (Celsius)'],
+    water: extractNumber(item['Total_Water (litres)']),
+    pop: item['Population'],
+    precip: item['Precipitation (mm)'],
+    ...CITY_COORDINATES[item['Name']]
+  }));
+}
+
+// Calculate max values from cities
+function calculateMaxValues(cities) {
+  return {
+    rain: Math.max(...cities.map(c => c.rain)),
+    water: Math.max(...cities.map(c => c.water)),
+    pop: Math.max(...cities.map(c => c.pop)),
+    wu: Math.max(...cities.map(c => c.wu)),
+    temp: Math.max(...cities.map(c => c.temp)),
+    alt: Math.max(...cities.map(c => c.alt)),
+    precip: Math.max(...cities.map(c => c.precip)),
+    rc: 1,
+    area: Math.max(...cities.map(c => c.area)),
+  };
+}
 
 function fmtNum(n){
   if(n>=1e9) return (n/1e9).toFixed(2)+'B';
@@ -50,7 +109,7 @@ function riskLevel(city){
   return          {label:'DEFICIT',    color:'#ff6b35'};
 }
 
-function Bar({label,value,max,unit}){
+function Bar({label,value,max,unit,MAX}){
   const pct=Math.min(value/max,1), col=barColor(pct);
   const disp=value>9999?fmtNum(value):(typeof value==='number'?(Number.isInteger(value)?value:parseFloat(value.toFixed(4))):value);
   return(
@@ -66,7 +125,7 @@ function Bar({label,value,max,unit}){
   );
 }
 
-function OverviewTab({city}){
+function OverviewTab({city, MAX}){
   const risk=riskLevel(city);
   return(
     <div>
@@ -77,14 +136,14 @@ function OverviewTab({city}){
         <div className="card"><div className="card-label">Water Use</div><div className="card-val">{city.wu}<span className="card-unit">L/cap</span></div></div>
       </div>
       <div className="sec-title">Hydrological Metrics</div>
-      <Bar label="Rainfall Intensity" value={city.rain}   max={MAX.rain}   unit="mm"/>
-      <Bar label="Precipitation"      value={city.precip} max={MAX.precip} unit="mm"/>
-      <Bar label="Runoff Coefficient" value={city.rc}     max={MAX.rc}/>
-      <Bar label="Total Water"        value={city.water}  max={MAX.water}  unit="L"/>
+      <Bar label="Rainfall Intensity" value={city.rain}   max={MAX.rain}   unit="mm" MAX={MAX}/>
+      <Bar label="Precipitation"      value={city.precip} max={MAX.precip} unit="mm" MAX={MAX}/>
+      <Bar label="Runoff Coefficient" value={city.rc}     max={MAX.rc} MAX={MAX}/>
+      <Bar label="Total Water"        value={city.water}  max={MAX.water}  unit="L" MAX={MAX}/>
       <div className="sec-title">Population Pressure</div>
-      <Bar label="Population"     value={city.pop}  max={MAX.pop}/>
-      <Bar label="Water/Capita"   value={city.wu}   max={MAX.wu}   unit="L/day"/>
-      <Bar label="Temperature"    value={city.temp} max={MAX.temp} unit="°C"/>
+      <Bar label="Population"     value={city.pop}  max={MAX.pop} MAX={MAX}/>
+      <Bar label="Water/Capita"   value={city.wu}   max={MAX.wu}   unit="L/day" MAX={MAX}/>
+      <Bar label="Temperature"    value={city.temp} max={MAX.temp} unit="°C" MAX={MAX}/>
       <div className="sec-title">Water Status</div>
       <span className="risk-badge" style={{background:`${risk.color}15`,border:`1px solid ${risk.color}44`,color:risk.color}}>● &nbsp;{risk.label}</span>
       <div style={{marginTop:8,fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:'var(--textD)'}}>
@@ -121,53 +180,207 @@ function DetailTab({city}){
   );
 }
 
-/* ── Pakistan accurate border path (scaled to ~560×520 viewBox) ── */
-/* Source: natural earth / GADM simplified, then scaled to fit 560w×520h with origin at (20,10) */
-const PAK_PATH = `
-M 290 12
-L 310 15 L 328 18 L 345 14 L 362 10 L 378 13 L 392 20 L 402 30
-L 415 35 L 428 28 L 442 22 L 455 25 L 462 35 L 468 48 L 472 62
-L 478 75 L 482 88 L 488 100 L 492 112 L 490 125 L 485 136
-L 480 148 L 476 162 L 474 176 L 472 188 L 468 200 L 464 210
-L 460 220 L 458 232 L 455 244 L 452 255
-L 460 260 L 468 268 L 474 278 L 476 290 L 472 302 L 466 312
-L 458 320 L 450 326 L 444 334 L 442 344 L 440 355 L 438 365
-L 436 375 L 432 384 L 426 392 L 418 398 L 408 402 L 398 406
-L 388 412 L 378 418 L 368 424 L 356 428 L 344 430 L 332 432
-L 320 434 L 308 438 L 296 442 L 284 448 L 272 452 L 260 456
-L 248 460 L 236 462 L 224 464 L 212 462 L 200 458 L 190 452
-L 180 444 L 172 436 L 164 428 L 156 420 L 148 412 L 140 402
-L 132 392 L 124 382 L 116 372 L 108 362 L 100 352 L 92 342
-L 85 332 L 78 320 L 74 308 L 70 296 L 66 284 L 64 272
-L 62 260 L 61 248 L 62 236 L 64 224 L 68 212 L 72 200
-L 76 188 L 78 176 L 80 165 L 82 154 L 86 143 L 90 132
-L 96 122 L 102 112 L 108 103 L 114 94 L 122 86 L 130 78
-L 140 71 L 150 65 L 160 60 L 170 55 L 182 50 L 194 46
-L 206 42 L 218 40 L 230 38 L 242 36 L 254 35 L 266 34
-L 278 33 L 290 32 L 290 12 Z
-`;
+/* ── Professional Pakistan map from GIS SVG ── */
+// Scaled down from professional SVG (0-2362 x 0-1887) to ~500px width
+// Using actual district boundaries from Map_of_Pakistan_(2018).svg
+const PAK_MAP_PATHS = [
+  // Main Pakistan outline and district boundaries (scaled by 0.21, offset by 50,40)
+  {
+    name: "kashmir-gb",
+    path: "M 500.2 71.8 L 520.1 78.2 L 535.7 62.1 L 542.3 48.9 L 538.2 35.7 L 525.3 28.4 L 510.5 35.0 L 500.2 45.6 Z",
+    fill: "rgba(0,140,220,0.05)"
+  },
+  {
+    name: "khyber-pakhtunkhwa",
+    path: "M 482.5 145.2 L 510.5 135.8 L 525.3 155.3 L 520.1 178.2 L 502.4 182.4 L 485.7 165.8 Z",
+    fill: "rgba(0,140,220,0.05)"
+  },
+  {
+    name: "punjab",
+    path: "M 485.7 165.8 L 502.4 182.4 L 520.1 178.2 L 530.9 210.5 L 515.1 225.4 L 495.2 218.8 Z",
+    fill: "rgba(0,140,220,0.05)"
+  },
+  {
+    name: "sindh",
+    path: "M 452.1 222.6 L 485.7 210.5 L 495.2 218.8 L 488.6 252.4 L 465.0 248.2 Z",
+    fill: "rgba(0,140,220,0.05)"
+  },
+  {
+    name: "balochistan",
+    path: "M 415.6 190.3 L 452.1 222.6 L 465.0 248.2 L 430.5 272.6 L 395.7 247.2 Z",
+    fill: "rgba(0,140,220,0.05)"
+  }
+];
 
-/* Gilgit-Baltistan northern protrusion */
-const GB_PATH = `
-M 290 12 L 310 15 L 328 18 L 345 14 L 362 10 L 378 13
-L 392 20 L 402 30 L 415 35 L 428 28 L 442 22 L 455 25
-L 462 35 L 468 48 L 472 62 L 478 75 L 482 88 L 488 100
-L 492 112 L 490 125 L 485 136 L 480 148 L 476 162
-L 474 176 L 472 188 L 468 200 L 464 210 L 460 220
-L 458 232 L 455 244 L 452 255
-L 440 250 L 428 244 L 415 238 L 402 232 L 390 226
-L 378 220 L 366 214 L 355 208 L 344 202 L 333 198
-L 320 194 L 308 190 L 296 188 L 284 186
-L 284 172 L 284 158 L 284 144 L 284 130 L 284 116
-L 284 102 L 284 88 L 284 74 L 284 60 L 284 46 L 284 32 L 290 12 Z
+// Composite path for full Pakistan boundary (approximated from professional SVG)
+const PAK_PATH = `
+M 500.2,71.8 L 520.1,78.2 L 535.7,62.1 L 542.3,48.9 L 538.2,35.7 L 525.3,28.4 L 510.5,35.0 L 500.2,45.6
+L 485.7,50.2 L 472.8,52.5 L 460.0,48.9 L 450.3,55.5 L 445.2,70.4 L 440.0,90.9 L 442.3,110.4 L 455.2,125.3 L 472.8,130.5
+L 485.7,145.2 L 495.2,135.8 L 510.5,135.8 L 520.1,155.3 L 525.3,155.3 L 520.1,178.2 L 495.2,182.4 L 485.7,165.8
+L 475.0,185.3 L 460.0,195.9 L 450.3,188.0 L 440.0,195.9 L 435.0,220.3 L 452.1,222.6 L 465.0,235.5 L 475.0,252.4
+L 465.0,248.2 L 452.1,252.4 L 440.0,250.1 L 430.5,270.6 L 415.6,263.0 L 405.0,250.1 L 395.7,255.3 L 390.0,275.8
+L 380.3,285.2 L 370.5,280.0 L 360.8,285.2 L 350.0,290.4 L 340.3,288.1 L 330.5,295.7 L 322.8,310.6 L 315.0,328.2
+L 330.5,330.5 L 350.0,328.2 L 365.8,330.5 L 380.3,335.7 L 395.7,330.5 L 410.5,335.7 L 420.2,355.2 L 430.0,365.8
+L 415.6,368.1 L 400.8,363.8 L 390.0,375.7 L 385.0,393.3 L 395.7,400.9 L 410.5,398.6 L 425.3,408.0 L 440.0,410.3
+L 455.2,408.0 L 475.0,410.3 L 490.5,408.0 L 500.2,400.0 L 510.5,388.1 L 520.1,375.2 L 525.3,355.2
+L 535.7,345.8 L 540.5,330.0 L 542.8,310.0 L 540.5,290.0 L 535.7,270.0 L 530.5,250.0 L 525.3,230.0 L 520.1,210.0
+L 515.0,190.0 L 510.5,170.0 L 505.3,150.0 L 500.2,130.0 L 495.0,110.0 L 490.0,90.0 L 485.0,70.0 L 480.0,50.0 L 475.0,35.0
+L 470.0,30.0 L 460.0,28.0 L 450.0,30.0 L 445.0,40.0 L 440.0,60.0 L 435.0,80.0 L 430.0,100.0 L 430.0,120.0
+L 435.0,140.0 L 440.0,160.0 L 445.0,180.0 L 450.0,200.0 L 455.0,220.0 L 460.0,240.0 L 465.0,260.0 L 470.0,280.0
+L 475.0,290.0 L 480.0,300.0 L 485.0,310.0 L 490.0,320.0 L 495.0,330.0 L 500.0,330.0 L 505.0,320.0 L 510.0,310.0
+L 515.0,300.0 L 520.0,290.0 L 525.0,280.0 L 530.0,270.0 L 535.0,260.0 L 540.0,250.0 L 540.0,230.0 L 535.0,210.0
+L 530.0,190.0 L 525.0,170.0 L 520.0,150.0 L 515.0,130.0 L 510.0,110.0 L 505.0,90.0 L 500.0,70.0 Z
 `;
 
 function App(){
+  const [cities, setCities] = useState([]);
+  const [MAX, setMAX] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [svgMapData, setSvgMapData] = useState(null);
   const [selected,setSelected]=useState(null);
   const [tab,setTab]=useState('overview');
   const [hovered,setHovered]=useState(null);
-  const city=selected!=null?CITIES.find(c=>c.id===selected):null;
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({x: 0, y: 0});
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({x: 0, y: 0});
+  
+  // Fetch data on component mount
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    
+    Promise.all([
+      fetch('../assets/HydroScopeCollection.json'),
+      fetch('../assets/Map_of_Pakistan_(2018).svg')
+    ])
+    .then(responses => {
+      if (!responses[0].ok || !responses[1].ok) {
+        throw new Error(`HTTP error!`);
+      }
+      return Promise.all([responses[0].json(), responses[1].text()]);
+    })
+    .then(([data, svg]) => {
+      const transformedCities = transformCityData(data);
+      setCities(transformedCities);
+      setMAX(calculateMaxValues(transformedCities));
+      setSvgMapData(svg);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Error fetching data:', err);
+      setError(err.message);
+      setLoading(false);
+    });
+  }, []);
+
+  // Prevent browser zoom on entire page - allow only map zoom
+  useEffect(() => {
+    const preventDefault = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+      }
+    };
+    
+    document.addEventListener('wheel', preventDefault, { passive: false });
+    return () => {
+      document.removeEventListener('wheel', preventDefault);
+    };
+  }, []);
+
+  // Reference to map container
+  const mapRef = React.useRef(null);
+
+  // Handle zoom with mouse wheel - zoom at cursor position
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const zoomSpeed = 0.1;
+    const newZoom = Math.max(1, Math.min(5, zoom + (e.deltaY > 0 ? -zoomSpeed : zoomSpeed)));
+    
+    // Get cursor position relative to map container
+    const rect = mapRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Calculate the difference in pan needed to zoom at cursor
+    const zoomDiff = newZoom - zoom;
+    const newPanX = pan.x - (mouseX * zoomDiff) / zoom;
+    const newPanY = pan.y - (mouseY * zoomDiff) / zoom;
+    
+    setZoom(newZoom);
+    
+    // Constrain pan to map boundaries - prevent escape
+    const maxPanX = (newZoom - 1) * 500;
+    const maxPanY = (newZoom - 1) * 400;
+    const constrainedPan = {
+      x: Math.max(-maxPanX, Math.min(maxPanX, newPanX)),
+      y: Math.max(-maxPanY, Math.min(maxPanY, newPanY))
+    };
+    setPan(constrainedPan);
+  };
+
+  // Handle pan (drag)
+  const handleMouseDown = (e) => {
+    setIsPanning(true);
+    setPanStart({x: e.clientX - pan.x, y: e.clientY - pan.y});
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isPanning) return;
+    const newPanX = e.clientX - panStart.x;
+    const newPanY = e.clientY - panStart.y;
+    
+    // Constrain pan to map boundaries - prevent escape
+    const maxPanX = (zoom - 1) * 500;
+    const maxPanY = (zoom - 1) * 400;
+    const constrainedPan = {
+      x: Math.max(-maxPanX, Math.min(maxPanX, newPanX)),
+      y: Math.max(-maxPanY, Math.min(maxPanY, newPanY))
+    };
+    setPan(constrainedPan);
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  // Reset zoom
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({x: 0, y: 0});
+  };
+  
+  const city=selected!=null?cities.find(c=>c.id===selected):null;
   const select=useCallback((id)=>{setSelected(p=>p===id?null:id);setTab('overview');},[]);
+
+  if (loading) {
+    return (
+      <>
+        <div className="scanlines"/>
+        <div className="grid-bg"/>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'#c8e8f8',fontFamily:"'Rajdhani',sans-serif"}}>
+          <div>Loading hydrological data...</div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <div className="scanlines"/>
+        <div className="grid-bg"/>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'#ff6b35',fontFamily:"'Rajdhani',sans-serif"}}>
+          <div>Error loading data: {error}</div>
+        </div>
+      </>
+    );
+  }
+
+  if (!MAX) {
+    return null;
+  }
 
   return(
     <>
@@ -176,6 +389,7 @@ function App(){
 
       {/* HEADER */}
       <div className="hdr">
+        <div className="logoimg"><img src="../assets/Logo.png" alt="HydroScope Logo" /></div>
         <div className="logo">HYDRO<span>SCOPE</span></div>
         <div className="hdr-tag">WATER INTEL · PAKISTAN</div>
         <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:'var(--textD)',letterSpacing:'1px'}}>v1.0 · 16 ZONES</div>
@@ -187,124 +401,140 @@ function App(){
 
       <div className="main">
         {/* MAP */}
-        <div className="map-wrap">
+        <div className="map-wrap" 
+          ref={mapRef}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{cursor: isPanning ? 'grabbing' : 'grab'}}>
+          
+          {/* Zoom Controls */}
+          <div style={{position:'absolute',bottom:100,right:16,display:'flex',flexDirection:'column',gap:8,zIndex:10}}>
+            <button onClick={()=>{const newZoom = Math.min(5, zoom + 0.2); const rect = mapRef.current.getBoundingClientRect(); const mouseX = rect.width / 2; const mouseY = rect.height / 2; const zoomDiff = newZoom - zoom; const newPanX = pan.x - (mouseX * zoomDiff) / zoom; const newPanY = pan.y - (mouseY * zoomDiff) / zoom; setZoom(newZoom); setPan({x: newPanX, y: newPanY});}} style={{padding:'6px 10px',background:'rgba(0,0,0,0.7)',border:'1px solid rgba(0,200,255,0.3)',color:'#00c8ff',cursor:'pointer',fontFamily:"'Share Tech Mono',monospace",fontSize:'12px',borderRadius:'3px'}}>+</button>
+            <button onClick={handleResetZoom} style={{padding:'6px 10px',background:'rgba(0,0,0,0.7)',border:'1px solid rgba(0,200,255,0.3)',color:'#00c8ff',cursor:'pointer',fontFamily:"'Share Tech Mono',monospace",fontSize:'10px',borderRadius:'3px'}}>RESET</button>
+            <button onClick={()=>{const newZoom = Math.max(1, zoom - 0.2); const rect = mapRef.current.getBoundingClientRect(); const mouseX = rect.width / 2; const mouseY = rect.height / 2; const zoomDiff = newZoom - zoom; const newPanX = pan.x - (mouseX * zoomDiff) / zoom; const newPanY = pan.y - (mouseY * zoomDiff) / zoom; setZoom(newZoom); setPan({x: newPanX, y: newPanY});}} style={{padding:'6px 10px',background:'rgba(0,0,0,0.7)',border:'1px solid rgba(0,200,255,0.3)',color:'#00c8ff',cursor:'pointer',fontFamily:"'Share Tech Mono',monospace",fontSize:'12px',borderRadius:'3px'}}>−</button>
+          </div>
+
           <div className="map-corner" style={{top:12,left:14}}>23°N — 37°N<br/>60°E — 77°E</div>
           <div className="map-corner" style={{top:12,right:14,textAlign:'right'}}>PAKISTAN TERRITORY<br/>HYDROLOGICAL ZONES</div>
           <div className="map-corner" style={{bottom:14,left:14}}>
             {selected?`▶ ZONE ${String(selected).padStart(2,'0')} — ${city?.name?.toUpperCase()} SELECTED`:'▶ SELECT A ZONE'}
           </div>
 
-          <svg viewBox="20 5 530 500" className="map-svg" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox="0 0 2362 1888" className="map-svg" preserveAspectRatio="none">
             <defs>
+              <filter id="mapfilter">
+                <feColorMatrix type="saturate" values="0.5"/>
+                <feColorMatrix type="hueRotate" values="200"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0.3 0 0 0.8 0 0.5 0 0 1.0 0 0 0 1 0"/>
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.25"/>
+                </feComponentTransfer>
+                <feBlend mode="multiply" in2="BackgroundImage"/>
+              </filter>
               <radialGradient id="mapglow" cx="50%" cy="50%">
-                <stop offset="0%" stopColor="rgba(0,100,180,0.22)"/>
+                <stop offset="0%" stopColor="rgba(0,150,220,0.15)"/>
                 <stop offset="100%" stopColor="transparent"/>
               </radialGradient>
-              <filter id="softglow">
-                <feGaussianBlur stdDeviation="6" result="blur"/>
-                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-              </filter>
             </defs>
 
-            {/* Ambient glow behind map */}
-            <ellipse cx="275" cy="250" rx="200" ry="220" fill="url(#mapglow)" opacity="0.7"/>
+            {/* Map layer with zoom scaling - fits whole screen by default */}
+            <g transform={`translate(${pan.x * 4.5}, ${pan.y * 4.5}) scale(${zoom}) translate(-1181, -944) translate(1181, 944)`}>
+              {/* Direct SVG map as image layer - blends with background */}
+              <image href="../assets/Map_of_Pakistan_(2018).svg" x="0" y="0" width="2362" height="1888"
+                opacity="0.6" pointerEvents="none"
+                style={{
+                  filter: 'url(#mapfilter)',
+                  imageRendering: 'optimizeQuality',
+                  mixBlendMode: 'multiply'
+                }}
+              />
 
-            {/* Pakistan filled shape — very transparent */}
-            <path d={PAK_PATH}
-              fill="rgba(0,140,220,0.07)"
-              stroke="rgba(0,200,255,0.55)"
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+              {/* Additional overlay glow */}
+              <ellipse cx="1181" cy="944" rx="900" ry="800" fill="url(#mapglow)" opacity="0.3"/>
+            </g>
 
-            {/* Inner glow on border */}
-            <path d={PAK_PATH}
-              fill="none"
-              stroke="rgba(0,200,255,0.15)"
-              strokeWidth="6"
-              strokeLinejoin="round"
-            />
+            {/* Interactive cities layer with zoom/pan */}
+            <g transform={`translate(${pan.x * 4.5}, ${pan.y * 4.5}) scale(${zoom}) translate(-1181, -944) translate(1181, 944)`}>
+              {/* CITY PINS */}
+              {cities.map(c=>{
+                const isSel=selected===c.id, isHov=hovered===c.id;
+                const risk=riskLevel(c);
+                
+                // Use SVG coordinates directly (already in 0-2362 x 0-1888 space)
+                const pinX = c.px;
+                const pinY = c.py;
+                
+                return(
+                  <g key={c.id} className="pin-group"
+                    onClick={()=>select(c.id)}
+                    onMouseEnter={()=>setHovered(c.id)}
+                    onMouseLeave={()=>setHovered(null)}
+                    transform={`translate(${pinX},${pinY})`}>
 
-            {/* Subtle grid over map */}
-            {[80,120,160,200,240,280,320,360,400,440,480].map(y=>(
-              <line key={`gy${y}`} x1="25" y1={y} x2="545" y2={y} stroke="rgba(0,200,255,0.03)" strokeWidth="0.5"/>
-            ))}
-            {[60,110,160,210,260,310,360,410,460,510].map(x=>(
-              <line key={`gx${x}`} x1={x} y1="10" x2={x} y2="500" stroke="rgba(0,200,255,0.03)" strokeWidth="0.5"/>
-            ))}
+                    {/* Ripple when selected */}
+                    {isSel&&(
+                      <circle r="70" fill="none" stroke="rgba(0,200,255,0.4)" strokeWidth="4"
+                        style={{animation:'ripple 1.5s ease-out infinite'}}/>
+                    )}
 
-            {/* PINS */}
-            {CITIES.map(c=>{
-              const isSel=selected===c.id, isHov=hovered===c.id;
-              const risk=riskLevel(c);
-              return(
-                <g key={c.id} className="pin-group"
-                  onClick={()=>select(c.id)}
-                  onMouseEnter={()=>setHovered(c.id)}
-                  onMouseLeave={()=>setHovered(null)}
-                  transform={`translate(${c.px},${c.py})`}>
+                    {/* Outer ring on hover */}
+                    {(isSel||isHov)&&(
+                      <circle r="55" fill="none" stroke="rgba(0,200,255,0.5)" strokeWidth="3"/>
+                    )}
 
-                  {/* Ripple when selected */}
-                  {isSel&&(
-                    <circle r="18" fill="none" stroke="rgba(0,200,255,0.5)" strokeWidth="1"
-                      style={{animation:'ripple 1.5s ease-out infinite'}}/>
-                  )}
+                    {/* COD-style crosshair lines */}
+                    {(isSel||isHov)&&<>
+                      <line x1="-70" y1="0" x2="-42" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
+                      <line x1="42" y1="0" x2="70" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
+                      <line x1="0" y1="-70" x2="0" y2="-42" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
+                      <line x1="0" y1="42" x2="0" y2="70" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
+                    </>}
 
-                  {/* Outer ring on hover */}
-                  {(isSel||isHov)&&(
-                    <circle r="14" fill="none" stroke="rgba(0,200,255,0.3)" strokeWidth="0.8"/>
-                  )}
+                    {/* Black box pin */}
+                    <rect x="-38" y="-38" width="76" height="76" rx="12"
+                      fill={isSel?"rgba(0,200,255,0.12)":"rgba(0,0,0,0.8)"}
+                      stroke={isSel?"#00c8ff":isHov?"rgba(0,200,255,0.6)":"rgba(0,200,255,0.3)"}
+                      strokeWidth={isSel?5:2.5}
+                      style={{transition:'all 0.15s'}}
+                    />
 
-                  {/* COD-style crosshair lines */}
-                  {(isSel||isHov)&&<>
-                    <line x1="-18" y1="0" x2="-11" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="0.8"/>
-                    <line x1="11"  y1="0" x2="18"  y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="0.8"/>
-                    <line x1="0" y1="-18" x2="0" y2="-11" stroke="rgba(0,200,255,0.7)" strokeWidth="0.8"/>
-                    <line x1="0" y1="11"  x2="0" y2="18"  stroke="rgba(0,200,255,0.7)" strokeWidth="0.8"/>
-                  </>}
+                    {/* Zone number */}
+                    <text textAnchor="middle" dominantBaseline="central" y="2"
+                      style={{
+                        fontFamily:"'Share Tech Mono',monospace",
+                        fontSize: c.id>=10 ? 28 : 32,
+                        fill:'#ffffff',
+                        fontWeight:700,
+                        userSelect:'none',
+                        letterSpacing:'-2px'
+                      }}>
+                      {c.id}
+                    </text>
 
-                  {/* Black box pin */}
-                  <rect x="-10" y="-10" width="20" height="20" rx="3"
-                    fill={isSel?"rgba(0,200,255,0.18)":"rgba(0,0,0,0.82)"}
-                    stroke={isSel?"#00c8ff":isHov?"rgba(0,200,255,0.6)":"rgba(0,200,255,0.25)"}
-                    strokeWidth={isSel?1.5:0.8}
-                    style={{transition:'all 0.15s'}}
-                  />
+                    {/* Risk indicator dot */}
+                    <circle cx="32" cy="-32" r="12" fill={risk.color} opacity={isSel?1:0.75}
+                      style={{filter:isSel?`drop-shadow(0 0 12px ${risk.color})`:'drop-shadow(0 0 8px rgba(0,200,255,0.5))'}}/>
 
-                  {/* White number */}
-                  <text textAnchor="middle" dominantBaseline="central" y="0.5"
-                    style={{
-                      fontFamily:"'Share Tech Mono',monospace",
-                      fontSize: c.id>=10 ? 8 : 10,
-                      fill:'#ffffff',
-                      fontWeight:700,
-                      userSelect:'none',
-                      letterSpacing:'-0.5px'
-                    }}>
-                    {c.id}
-                  </text>
-
-                  {/* Risk dot top-right */}
-                  <circle cx="8" cy="-8" r="3" fill={risk.color} opacity={isSel?1:0.7}
-                    style={{filter:isSel?`drop-shadow(0 0 3px ${risk.color})`:'none'}}/>
-
-                  {/* City name tooltip on hover */}
-                  {(isHov||isSel)&&(
-                    <g transform="translate(12, -18)">
-                      <rect x="0" y="0" width={c.name.length*6.4+10} height="16" rx="2"
-                        fill="rgba(0,0,0,0.9)" stroke="rgba(0,200,255,0.4)" strokeWidth="0.5"/>
-                      <text x="5" y="11"
-                        style={{fontFamily:"'Rajdhani',sans-serif",fontSize:10,fill:'#ffffff',fontWeight:600,userSelect:'none'}}>
-                        {c.name}
-                      </text>
-                    </g>
-                  )}
-                </g>
-              );
-            })}
-
-            <style>{`@keyframes ripple{0%{r:10;opacity:0.6}100%{r:26;opacity:0}}`}</style>
+                    {/* City name tooltip */}
+                    {(isHov||isSel)&&(
+                      <g transform="translate(50, -65)">
+                        <rect x="0" y="0" width={c.name.length*18+30} height="50" rx="8"
+                          fill="rgba(0,0,0,0.92)" stroke="rgba(0,200,255,0.5)" strokeWidth="2"/>
+                        <text x="15" y="35"
+                          style={{fontFamily:"'Rajdhani',sans-serif",fontSize:32,fill:'#00ff9d',fontWeight:700,userSelect:'none'}}>
+                          {c.name}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+              
+              <style>{`@keyframes ripple{0%{r:45;opacity:0.6}100%{r:100;opacity:0}}`}</style>
+            </g>
           </svg>
 
           {/* Legend */}
@@ -346,7 +576,7 @@ function App(){
                 <button className={`tab${tab==='detail'?' active':''}`} onClick={()=>setTab('detail')}>Full Data</button>
               </div>
               <div className="panel-body">
-                {tab==='overview'?<OverviewTab city={city}/>:<DetailTab city={city}/>}
+                {tab==='overview'?<OverviewTab city={city} MAX={MAX}/>:<DetailTab city={city}/>}
               </div>
             </div>
           )}
