@@ -19,31 +19,7 @@ function latLngToPx(lat, lng) {
   };
 }
 
-// Calculate city coordinates from lat/lng
-const CITY_LAT_LNG = {
-  'Quetta': {lat: 30.18, lng: 66.98},
-  'Gwadar': {lat: 25.18, lng: 62.30},
-  'Hyderabad': {lat: 25.37, lng: 68.35},
-  'Multan': {lat: 30.20, lng: 71.44},
-  'Karachi': {lat: 24.86, lng: 66.99},
-  'Sukkur': {lat: 27.71, lng: 68.82},
-  'Islamabad': {lat: 33.73, lng: 73.16},
-  'Rawalpindi': {lat: 33.59, lng: 73.21},
-  'Faisalabad': {lat: 31.41, lng: 72.99},
-  'Sialkot': {lat: 32.49, lng: 74.53},
-  'Bahawalpur': {lat: 29.54, lng: 71.68},
-  'Gujranwala': {lat: 32.16, lng: 74.18},
-  'Lahore': {lat: 31.54, lng: 74.31},
-  'Abbottabad': {lat: 34.15, lng: 73.22},
-  'Gilgit': {lat: 35.93, lng: 74.31},
-  'Skardu': {lat: 35.30, lng: 75.57},
-};
 
-// Convert to pixel coordinates
-const CITY_COORDINATES = Object.entries(CITY_LAT_LNG).reduce((acc, [name, coords]) => {
-  acc[name] = latLngToPx(coords.lat, coords.lng);
-  return acc;
-}, {});
 
 // Helper function to extract numeric values from MongoDB extended types
 function extractNumber(value) {
@@ -56,23 +32,28 @@ function extractNumber(value) {
 
 // Transform MongoDB data to app format
 function transformCityData(mongoData) {
-  return mongoData.map(item => ({
-    id: item['Area No'][''],
-    name: item['Name'],
-    lat: item['Latitude'],
-    lng: item['Longitude'],
-    alt: item['Altitude (m)'],
-    slope: item['Slope '],
-    rain: item['Rainfall_Intensity (mm)'],
-    area: extractNumber(item['Area (m^2)']),
-    rc: item['Runoff_Coefficient'],
-    wu: item['Water_Use (litre per capita)'],
-    temp: item['Average_Temperature (Celsius)'],
-    water: extractNumber(item['Total_Water (litres)']),
-    pop: item['Population'],
-    precip: item['Precipitation (mm)'],
-    ...CITY_COORDINATES[item['Name']]
-  }));
+  return mongoData.map(item => {
+    const coords = latLngToPx(item['Latitude'], item['Longitude']);
+    return {
+      id: item['Area No'][''],
+      name: item['Name'],
+      lat: item['Latitude'],
+      lng: item['Longitude'],
+      alt: item['Altitude (m)'],
+      slope: item['Slope '],
+      rain: item['Rainfall_Intensity (mm)'],
+      area: extractNumber(item['Area (m^2)']),
+      rc: item['Runoff_Coefficient'],
+      wu: item['Water_Use (litre per capita)'],
+      temp: item['Average_Temperature (Celsius)'],
+      water: extractNumber(item['Total_Water (litres)']),
+      pop: item['Population'],
+      precip: item['Precipitation (mm)'],
+      // Use manual position if available, otherwise use calculated position
+      px: item['posX'] !== undefined && item['posX'] !== null ? item['posX'] : coords.px,
+      py: item['posY'] !== undefined && item['posY'] !== null ? item['posY'] : coords.py
+    };
+  });
 }
 
 // Calculate max values from cities
@@ -176,6 +157,156 @@ function DetailTab({city}){
       {rows.map(r=><div className="detail-row" key={r.k}><span className="detail-key">{r.k}</span><span className="detail-val">{r.v}{r.unit&&<span className="detail-unit">{r.unit}</span>}</span></div>)}
       <div className="sec-title">Derived Metrics</div>
       {derived.map(r=><div className="detail-row" key={r.k}><span className="detail-key">{r.k}</span><span className="detail-val">{r.v}{r.unit&&<span className="detail-unit">{r.unit}</span>}</span></div>)}
+    </div>
+  );
+}
+
+// Flood Risk Calculator Functions
+function calculateFloodScore(city, MAX) {
+  // Q = C.I.A (Runoff Coefficient * Rainfall Intensity * Area)
+  const Q = city.rc * city.rain * (city.area / 1000000); // Normalize area to km²
+  
+  // S = Slope (already provided)
+  const S = city.slope;
+  
+  // Normalize Q and S to 0-1 scale for scoring
+  const maxQ = MAX.rc * MAX.rain * (MAX.area / 1000000);
+  const maxS = 0.5; // Reasonable max slope value
+  
+  const qScore = Math.min(Q / maxQ, 1);
+  const sScore = Math.min(S / maxS, 1);
+  
+  // Flood score weighted: 60% runoff, 40% slope
+  return (qScore * 0.6 + sScore * 0.4);
+}
+
+function calculateWaterScarcityScore(city) {
+  // Availability = Total Water / Population (convert to m³ per person per year)
+  const waterPerCapitaPerYear = (city.water * 0.001) / city.pop; // Convert L to m³
+  
+  // Drought Index = Rainfall / Temperature (lower = drier)
+  const droughtIndex = city.rain / Math.max(city.temp, 1);
+  
+  // Scarcity scoring based on threshold
+  let availabilityScore;
+  if (waterPerCapitaPerYear > 1700) {
+    availabilityScore = 0; // No scarcity
+  } else if (waterPerCapitaPerYear > 1000) {
+    // Water stress
+    availabilityScore = (1700 - waterPerCapitaPerYear) / 700 * 0.5;
+  } else {
+    // Water scarcity
+    availabilityScore = 0.5 + (Math.min(1000, waterPerCapitaPerYear) / 1000) * 0.5;
+  }
+  
+  // Drought index score (normalize, higher drought = higher scarcity)
+  const droughtScore = Math.max(0, Math.min(1, 2 - droughtIndex / 10));
+  
+  // Scarcity score weighted: 70% availability, 30% drought
+  return (availabilityScore * 0.7 + droughtScore * 0.3);
+}
+
+function calculateSuitabilityScore(city, MAX) {
+  // Suitability based on: slope (flatter is better), water availability (more is better)
+  const maxS = 0.5;
+  const slopeScore = 1 - Math.min(city.slope / maxS, 1); // Flatten = more suitable
+  
+  // Water availability score (more water = more suitable)
+  const waterPerCapita = (city.water * 0.001) / city.pop;
+  const waterScore = Math.min(waterPerCapita / 2000, 1);
+  
+  // Temperature suitability (moderate temps 20-30°C are most suitable)
+  const tempOptimal = 25;
+  const tempDiff = Math.abs(city.temp - tempOptimal);
+  const tempScore = Math.max(0, 1 - (tempDiff / 20));
+  
+  // Suitability weighted: 40% slope, 35% water, 25% temperature
+  return (slopeScore * 0.4 + waterScore * 0.35 + tempScore * 0.25);
+}
+
+function calculateFinalScore(floodScore, scarcityScore, suitabilityScore) {
+  return floodScore * 0.4 + scarcityScore * 0.3 + suitabilityScore * 0.3;
+}
+
+function RiskScoreBadge({score}) {
+  let color, label;
+  if (score < 0.2) {
+    color = '#00ff9d';
+    label = 'VERY LOW RISK';
+  } else if (score < 0.4) {
+    color = '#00d9ff';
+    label = 'LOW RISK';
+  } else if (score < 0.6) {
+    color = '#ffc200';
+    label = 'MODERATE RISK';
+  } else if (score < 0.8) {
+    color = '#ff8c35';
+    label = 'HIGH RISK';
+  } else {
+    color = '#ff6b35';
+    label = 'CRITICAL RISK';
+  }
+  
+  return (
+    <div style={{background:`${color}15`,border:`1px solid ${color}44`,borderRadius:3,padding:'8px 11px',color:color,fontFamily:"'Share Tech Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'1px',textAlign:'center',marginBottom:12}}>
+      {label} ({(score*100).toFixed(1)}%)
+    </div>
+  );
+}
+
+function CalculatorTab({city, MAX}){
+  const floodScore = calculateFloodScore(city, MAX);
+  const scarcityScore = calculateWaterScarcityScore(city);
+  const suitabilityScore = calculateSuitabilityScore(city, MAX);
+  const finalScore = calculateFinalScore(floodScore, scarcityScore, suitabilityScore);
+  
+  const waterPerCapita = (city.water * 0.001) / city.pop;
+  const Q = city.rc * city.rain * (city.area / 1000000);
+  const droughtIndex = city.rain / Math.max(city.temp, 1);
+  
+  return (
+    <div>
+      <div className="sec-title">Risk Assessment</div>
+      <RiskScoreBadge score={finalScore}/>
+      
+      <div className="sec-title">Final Composite Score</div>
+      <div style={{marginBottom:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:'var(--textD)',letterSpacing:'1px'}}>Flood Impact (40%)</span>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:11,fontWeight:600,color:'#ff8c35'}}>{(floodScore*100).toFixed(1)}%</span>
+        </div>
+        <div className="bar-track"><div className="bar-fill" style={{width:`${floodScore*100}%`,background:'linear-gradient(90deg,#ff8c3544,#ff8c35)'}}/></div>
+      </div>
+      
+      <div style={{marginBottom:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:'var(--textD)',letterSpacing:'1px'}}>Water Scarcity (30%)</span>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:11,fontWeight:600,color:'#ffc200'}}>{(scarcityScore*100).toFixed(1)}%</span>
+        </div>
+        <div className="bar-track"><div className="bar-fill" style={{width:`${scarcityScore*100}%`,background:'linear-gradient(90deg,#ffc20044,#ffc200)'}}/></div>
+      </div>
+      
+      <div style={{marginBottom:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:'var(--textD)',letterSpacing:'1px'}}>Land Suitability (30%)</span>
+          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:11,fontWeight:600,color:'#00ff9d'}}>{(suitabilityScore*100).toFixed(1)}%</span>
+        </div>
+        <div className="bar-track"><div className="bar-fill" style={{width:`${suitabilityScore*100}%`,background:'linear-gradient(90deg,#00ff9d44,#00ff9d)'}}/></div>
+      </div>
+      
+      <div className="sec-title">Flood Metrics</div>
+      <Bar label="Runoff Peak (Q)" value={Q} max={MAX.rain*MAX.rc*10} unit="m³/s" MAX={MAX}/>
+      <Bar label="Terrain Slope" value={city.slope} max={0.5} MAX={MAX}/>
+      
+      <div className="sec-title">Water Scarcity Metrics</div>
+      <div className="detail-row"><span className="detail-key">Availability</span><span className="detail-val">{waterPerCapita.toFixed(0)}<span className="detail-unit">m³/person/yr</span></span></div>
+      <div className="detail-row"><span className="detail-key">Status</span><span className="detail-val" style={{color: waterPerCapita > 1700 ? '#00ff9d' : waterPerCapita > 1000 ? '#ffc200' : '#ff6b35'}}>{waterPerCapita > 1700 ? 'SUFFICIENT' : waterPerCapita > 1000 ? 'STRESS' : 'SCARCITY'}</span></div>
+      <Bar label="Drought Index" value={droughtIndex} max={5} MAX={MAX}/>
+      
+      <div className="sec-title">Suitability Factors</div>
+      <div className="detail-row"><span className="detail-key">Terrain Fitness</span><span className="detail-val">{(suitabilityScore*100).toFixed(0)}%</span></div>
+      <div className="detail-row"><span className="detail-key">Slope Category</span><span className="detail-val">{city.slope < 0.1 ? 'FLAT' : city.slope < 0.2 ? 'GENTLE' : city.slope < 0.35 ? 'STEEP' : 'VERY STEEP'}</span></div>
+      <div className="detail-row"><span className="detail-key">Climate Suitability</span><span className="detail-val">{city.temp < 15 ? 'COOL' : city.temp < 25 ? 'OPTIMAL' : 'HOT'}</span></div>
     </div>
   );
 }
@@ -408,7 +539,7 @@ function App(){
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{cursor: isPanning ? 'grabbing' : 'grab'}}>
+          style={{cursor: 'crosshair'}}>
           
           {/* Zoom Controls */}
           <div style={{position:'absolute',bottom:100,right:16,display:'flex',flexDirection:'column',gap:8,zIndex:10}}>
@@ -476,36 +607,36 @@ function App(){
 
                     {/* Ripple when selected */}
                     {isSel&&(
-                      <circle r="70" fill="none" stroke="rgba(0,200,255,0.4)" strokeWidth="4"
+                      <circle r="52.5" fill="none" stroke="rgba(0,200,255,0.4)" strokeWidth="3"
                         style={{animation:'ripple 1.5s ease-out infinite'}}/>
                     )}
 
                     {/* Outer ring on hover */}
                     {(isSel||isHov)&&(
-                      <circle r="55" fill="none" stroke="rgba(0,200,255,0.5)" strokeWidth="3"/>
+                      <circle r="41.25" fill="none" stroke="rgba(0,200,255,0.5)" strokeWidth="2.25"/>
                     )}
 
                     {/* COD-style crosshair lines */}
                     {(isSel||isHov)&&<>
-                      <line x1="-70" y1="0" x2="-42" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
-                      <line x1="42" y1="0" x2="70" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
-                      <line x1="0" y1="-70" x2="0" y2="-42" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
-                      <line x1="0" y1="42" x2="0" y2="70" stroke="rgba(0,200,255,0.7)" strokeWidth="2.5"/>
+                      <line x1="-52.5" y1="0" x2="-31.5" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2"/>
+                      <line x1="31.5" y1="0" x2="52.5" y2="0" stroke="rgba(0,200,255,0.7)" strokeWidth="2"/>
+                      <line x1="0" y1="-52.5" x2="0" y2="-31.5" stroke="rgba(0,200,255,0.7)" strokeWidth="2"/>
+                      <line x1="0" y1="31.5" x2="0" y2="52.5" stroke="rgba(0,200,255,0.7)" strokeWidth="2"/>
                     </>}
 
                     {/* Black box pin */}
-                    <rect x="-38" y="-38" width="76" height="76" rx="12"
+                    <rect x="-28.5" y="-28.5" width="57" height="57" rx="9"
                       fill={isSel?"rgba(0,200,255,0.12)":"rgba(0,0,0,0.8)"}
                       stroke={isSel?"#00c8ff":isHov?"rgba(0,200,255,0.6)":"rgba(0,200,255,0.3)"}
-                      strokeWidth={isSel?5:2.5}
+                      strokeWidth={isSel?3.75:2.25}
                       style={{transition:'all 0.15s'}}
                     />
 
                     {/* Zone number */}
-                    <text textAnchor="middle" dominantBaseline="central" y="2"
+                    <text textAnchor="middle" dominantBaseline="central" y="0.75"
                       style={{
                         fontFamily:"'Share Tech Mono',monospace",
-                        fontSize: c.id>=10 ? 28 : 32,
+                        fontSize: c.id>=10 ? 21 : 24,
                         fill:'#ffffff',
                         fontWeight:700,
                         userSelect:'none',
@@ -515,16 +646,16 @@ function App(){
                     </text>
 
                     {/* Risk indicator dot */}
-                    <circle cx="32" cy="-32" r="12" fill={risk.color} opacity={isSel?1:0.75}
-                      style={{filter:isSel?`drop-shadow(0 0 12px ${risk.color})`:'drop-shadow(0 0 8px rgba(0,200,255,0.5))'}}/>
+                    <circle cx="24" cy="-24" r="4.5" fill={risk.color} opacity={isSel?1:0.75}
+                      style={{filter:isSel?`drop-shadow(0 0 9px ${risk.color})`:'drop-shadow(0 0 6px rgba(0,200,255,0.5))'}}/>
 
                     {/* City name tooltip */}
                     {(isHov||isSel)&&(
-                      <g transform="translate(50, -65)">
-                        <rect x="0" y="0" width={c.name.length*18+30} height="50" rx="8"
-                          fill="rgba(0,0,0,0.92)" stroke="rgba(0,200,255,0.5)" strokeWidth="2"/>
-                        <text x="15" y="35"
-                          style={{fontFamily:"'Rajdhani',sans-serif",fontSize:32,fill:'#00ff9d',fontWeight:700,userSelect:'none'}}>
+                      <g transform="translate(42.75, -52.5)">
+                        <rect x="0" y="0" width={c.name.length*14+24} height="40" rx="6"
+                          fill="rgba(0,0,0,0.92)" stroke="rgba(0,200,255,0.5)" strokeWidth="1.5"/>
+                        <text x="12" y="28"
+                          style={{fontFamily:"'Rajdhani',sans-serif",fontSize:20,fill:'#00ff9d',fontWeight:700,userSelect:'none'}}>
                           {c.name}
                         </text>
                       </g>
@@ -574,9 +705,10 @@ function App(){
               <div className="tabs">
                 <button className={`tab${tab==='overview'?' active':''}`} onClick={()=>setTab('overview')}>Overview</button>
                 <button className={`tab${tab==='detail'?' active':''}`} onClick={()=>setTab('detail')}>Full Data</button>
+                <button className={`tab${tab==='calculator'?' active':''}`} onClick={()=>setTab('calculator')}>Risk Calc</button>
               </div>
               <div className="panel-body">
-                {tab==='overview'?<OverviewTab city={city} MAX={MAX}/>:<DetailTab city={city}/>}
+                {tab==='overview'?<OverviewTab city={city} MAX={MAX}/>:tab==='detail'?<DetailTab city={city}/>:<CalculatorTab city={city} MAX={MAX}/>}
               </div>
             </div>
           )}

@@ -19,7 +19,9 @@
   "Average_Temperature (Celsius)": 18,
   "Total_Water (litres)": 909218,
   "Population": 1565546,
-  "Precipitation (mm)": 244
+  "Precipitation (mm)": 244,
+  "posX": 725,
+  "posY": 1000
 },
 {
   "_id": {
@@ -42,7 +44,9 @@
   "Average_Temperature (Celsius)": 25,
   "Total_Water (litres)": 141000000,
   "Population": 305160,
-  "Precipitation (mm)": 87.5
+  "Precipitation (mm)": 87.5,
+  "posX": 225,
+  "posY": 1620
 },
 {
   "_id": {
@@ -63,7 +67,9 @@
   "Average_Temperature (Celsius)": 35,
   "Total_Water (litres)": 372700000,
   "Population": 10142000,
-  "Precipitation (mm)": 40
+  "Precipitation (mm)": 40,
+  "posX": 940,
+  "posY": 1635
 },
 {
   "_id": {
@@ -84,7 +90,9 @@
   "Average_Temperature (Celsius)": 34,
   "Total_Water (litres)": 143000000,
   "Population": 2313000,
-  "Precipitation (mm)": 69
+  "Precipitation (mm)": 69,
+  "posX": 1300,
+  "posY": 1000
 },
 {
   "_id": {
@@ -109,7 +117,9 @@
     "$numberLong": "2955000000"
   },
   "Population": 20382881,
-  "Precipitation (mm)": 65
+  "Precipitation (mm)": 65,
+  "posX": 800,
+  "posY": 1650
 },
 {
   "_id": {
@@ -132,7 +142,9 @@
   "Average_Temperature (Celsius)": 27,
   "Total_Water (litres)": 40900000,
   "Population": 563851,
-  "Precipitation (mm)": 164.6
+  "Precipitation (mm)": 164.6,
+  "posX": 1020,
+  "posY": 1325
 },
 {
   "_id": {
@@ -155,7 +167,9 @@
     "$numberLong": "89800000000"
   },
   "Population": 1108872,
-  "Precipitation (mm)": 1500
+  "Precipitation (mm)": 1500,
+  "posX": 1500,
+  "posY": 500
 },
 {
   "_id": {
@@ -178,7 +192,9 @@
     "$numberLong": "74700000000"
   },
   "Population": 3357612,
-  "Precipitation (mm)": 1600
+  "Precipitation (mm)": 1600,
+  "posX": 1500,
+  "posY": 550
 },
 {
   "_id": {
@@ -201,7 +217,9 @@
   "Average_Temperature (Celsius)": 24.68,
   "Total_Water (litres)": 183000000000,
   "Population": 3691999,
-  "Precipitation (mm)": 1150
+  "Precipitation (mm)": 1150,
+  "posX": 1500,
+  "posY": 825
 },
 {
   "_id": {
@@ -224,7 +242,9 @@
     "$numberLong": "20000000000"
   },
   "Population": 911817,
-  "Precipitation (mm)": 1100
+  "Precipitation (mm)": 1100,
+  "posX": 1665,
+  "posY": 655
 },
 {
   "_id": {
@@ -247,7 +267,9 @@
     "$numberLong": "8000000000"
   },
   "Population": 903795,
-  "Precipitation (mm)": 325
+  "Precipitation (mm)": 325,
+  "posX": 1330,
+  "posY": 1150
 },
 {
   "_id": {
@@ -268,7 +290,9 @@
   "Average_Temperature (Celsius)": 24,
   "Total_Water (litres)": 111000000,
   "Population": 2610000,
-  "Precipitation (mm)": 675
+  "Precipitation (mm)": 675,
+  "posX": 1615,
+  "posY": 700
 },
 {
   "_id": {
@@ -291,7 +315,9 @@
     "$numberLong": "2390000000"
   },
   "Population": 15238000,
-  "Precipitation (mm)": 650
+  "Precipitation (mm)": 650,
+  "posX": 1630,
+  "posY": 805
 },
 {
   "_id": {
@@ -312,7 +338,9 @@
   "Average_Temperature (Celsius)": 16.5,
   "Total_Water (litres)": 14400000,
   "Population": 300000,
-  "Precipitation (mm)": 1300
+  "Precipitation (mm)": 1300,
+  "posX": 1510,
+  "posY": 430
 },
 {
   "_id": {
@@ -333,7 +361,9 @@
   "Average_Temperature (Celsius)": 12,
   "Total_Water (litres)": 4540000,
   "Population": 180000,
-  "Precipitation (mm)": 200
+  "Precipitation (mm)": 200,
+  "posX": 1650,
+  "posY": 200
 },
 {
   "_id": {
@@ -354,5 +384,7 @@
   "Average_Temperature (Celsius)": 11,
   "Total_Water (litres)": 11700000,
   "Population": 110000,
-  "Precipitation (mm)": 175
+  "Precipitation (mm)": 175,
+  "posX": 1775,
+  "posY": 250
 }]
