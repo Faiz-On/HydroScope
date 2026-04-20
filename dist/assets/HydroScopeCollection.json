@@ -1,0 +1,390 @@
+[{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08927"
+  },
+  "Area No": {
+    "": 1
+  },
+  "Name": "Quetta",
+  "Altitude (m)": 1680,
+  "Slope ": 1.05,
+  "Latitude": 30.1841,
+  "Longitude": 67.0014,
+  "Rainfall_Intensity (mm)": 240,
+  "Area (m^2)": {
+    "$numberLong": "3501000000"
+  },
+  "Runoff_Coefficient": 0.6,
+  "Water_Use (litre per capita)": 59,
+  "Average_Temperature (Celsius)": 18,
+  "Total_Water (litres)": 909218,
+  "Population": 1565546,
+  "Precipitation (mm)": 244,
+  "posX": 725,
+  "posY": 1000
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08928"
+  },
+  "Area No": {
+    "": 2
+  },
+  "Name": "Gwadar",
+  "Altitude (m)": 150,
+  "Slope ": 0.15,
+  "Latitude": 25.1216,
+  "Longitude": 62.3254,
+  "Rainfall_Intensity (mm)": 87.5,
+  "Area (m^2)": {
+    "$numberLong": "12637000000"
+  },
+  "Runoff_Coefficient": 0.44,
+  "Water_Use (litre per capita)": 55,
+  "Average_Temperature (Celsius)": 25,
+  "Total_Water (litres)": 141000000,
+  "Population": 305160,
+  "Precipitation (mm)": 87.5,
+  "posX": 225,
+  "posY": 1620
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08929"
+  },
+  "Area No": {
+    "": 3
+  },
+  "Name": "Hyderabad",
+  "Altitude (m)": 536,
+  "Slope ": 0.0268,
+  "Latitude": 25.3924,
+  "Longitude": 68.3737,
+  "Rainfall_Intensity (mm)": 40,
+  "Area (m^2)": 650000000,
+  "Runoff_Coefficient": 0.8,
+  "Water_Use (litre per capita)": 96.2,
+  "Average_Temperature (Celsius)": 35,
+  "Total_Water (litres)": 372700000,
+  "Population": 10142000,
+  "Precipitation (mm)": 40,
+  "posX": 940,
+  "posY": 1635
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892a"
+  },
+  "Area No": {
+    "": 4
+  },
+  "Name": "Multan",
+  "Altitude (m)": 215,
+  "Slope ": 0.01075,
+  "Latitude": 30.1968,
+  "Longitude": 71.4782,
+  "Rainfall_Intensity (mm)": 69,
+  "Area (m^2)": 560000000,
+  "Runoff_Coefficient": 0.75,
+  "Water_Use (litre per capita)": 29,
+  "Average_Temperature (Celsius)": 34,
+  "Total_Water (litres)": 143000000,
+  "Population": 2313000,
+  "Precipitation (mm)": 69,
+  "posX": 1300,
+  "posY": 1000
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892b"
+  },
+  "Area No": {
+    "": 5
+  },
+  "Name": "Karachi",
+  "Altitude (m)": 8,
+  "Slope ": 0.000089,
+  "Latitude": 24.8607,
+  "Longitude": 67.0011,
+  "Rainfall_Intensity (mm)": 65,
+  "Area (m^2)": {
+    "$numberLong": "3527000000"
+  },
+  "Runoff_Coefficient": 0.73,
+  "Water_Use (litre per capita)": 54.5,
+  "Average_Temperature (Celsius)": 26.6,
+  "Total_Water (litres)": {
+    "$numberLong": "2955000000"
+  },
+  "Population": 20382881,
+  "Precipitation (mm)": 65,
+  "posX": 800,
+  "posY": 1650
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892c"
+  },
+  "Area No": {
+    "": 6
+  },
+  "Name": "Sukkur",
+  "Altitude (m)": 67,
+  "Slope ": 0.006090909,
+  "Latitude": 27.7244,
+  "Longitude": 68.8228,
+  "Rainfall_Intensity (mm)": 164.6,
+  "Area (m^2)": {
+    "$numberLong": "5165000000"
+  },
+  "Runoff_Coefficient": 0.96,
+  "Water_Use (litre per capita)": 80,
+  "Average_Temperature (Celsius)": 27,
+  "Total_Water (litres)": 40900000,
+  "Population": 563851,
+  "Precipitation (mm)": 164.6,
+  "posX": 1020,
+  "posY": 1325
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892d"
+  },
+  "Area No": {
+    "": 7
+  },
+  "Name": "Islamabad",
+  "Altitude (m)": 520,
+  "Slope ": 1.33,
+  "Latitude": 33.6995,
+  "Longitude": 73.0363,
+  "Rainfall_Intensity (mm)": 1320,
+  "Area (m^2)": 906500000,
+  "Runoff_Coefficient": 0.8,
+  "Water_Use (litre per capita)": 273,
+  "Average_Temperature (Celsius)": 21.53,
+  "Total_Water (litres)": {
+    "$numberLong": "89800000000"
+  },
+  "Population": 1108872,
+  "Precipitation (mm)": 1500,
+  "posX": 1500,
+  "posY": 500
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892e"
+  },
+  "Area No": {
+    "": 8
+  },
+  "Name": "Rawalpindi",
+  "Altitude (m)": 508,
+  "Slope ": 0.67,
+  "Latitude": 33.5848,
+  "Longitude": 73.0658,
+  "Rainfall_Intensity (mm)": 1200,
+  "Area (m^2)": 479000000,
+  "Runoff_Coefficient": 0.8,
+  "Water_Use (litre per capita)": 289,
+  "Average_Temperature (Celsius)": 21.69,
+  "Total_Water (litres)": {
+    "$numberLong": "74700000000"
+  },
+  "Population": 3357612,
+  "Precipitation (mm)": 1600,
+  "posX": 1500,
+  "posY": 550
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b0892f"
+  },
+  "Area No": {
+    "": 9
+  },
+  "Name": "Faisalabad",
+  "Altitude (m)": 186,
+  "Slope ": 0.086,
+  "Latitude": 31.4504,
+  "Longitude": 73.135,
+  "Rainfall_Intensity (mm)": 400,
+  "Area (m^2)": {
+    "$numberLong": "5856000000"
+  },
+  "Runoff_Coefficient": 0.5,
+  "Water_Use (litre per capita)": 150,
+  "Average_Temperature (Celsius)": 24.68,
+  "Total_Water (litres)": 183000000000,
+  "Population": 3691999,
+  "Precipitation (mm)": 1150,
+  "posX": 1500,
+  "posY": 825
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08930"
+  },
+  "Area No": {
+    "": 10
+  },
+  "Name": "Sialkot",
+  "Altitude (m)": 256,
+  "Slope ": 0.5,
+  "Latitude": 32.4945,
+  "Longitude": 74.5229,
+  "Rainfall_Intensity (mm)": 960,
+  "Area (m^2)": 135000000,
+  "Runoff_Coefficient": 0.6,
+  "Water_Use (litre per capita)": 121,
+  "Average_Temperature (Celsius)": 22.64,
+  "Total_Water (litres)": {
+    "$numberLong": "20000000000"
+  },
+  "Population": 911817,
+  "Precipitation (mm)": 1100,
+  "posX": 1665,
+  "posY": 655
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08931"
+  },
+  "Area No": {
+    "": 11
+  },
+  "Name": "Bahawalpur",
+  "Altitude (m)": 118,
+  "Slope ": 0.1,
+  "Latitude": 29.3544,
+  "Longitude": 71.6911,
+  "Rainfall_Intensity (mm)": 300,
+  "Area (m^2)": 246000000,
+  "Runoff_Coefficient": 0.35,
+  "Water_Use (litre per capita)": 110,
+  "Average_Temperature (Celsius)": 26.09,
+  "Total_Water (litres)": {
+    "$numberLong": "8000000000"
+  },
+  "Population": 903795,
+  "Precipitation (mm)": 325,
+  "posX": 1330,
+  "posY": 1150
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08932"
+  },
+  "Area No": {
+    "": 12
+  },
+  "Name": "Gujranwala",
+  "Altitude (m)": 226,
+  "Slope ": 0.01,
+  "Latitude": 25.1216,
+  "Longitude": 62.3254,
+  "Rainfall_Intensity (mm)": 60,
+  "Area (m^2)": 240000000,
+  "Runoff_Coefficient": 0.675,
+  "Water_Use (litre per capita)": 130,
+  "Average_Temperature (Celsius)": 24,
+  "Total_Water (litres)": 111000000,
+  "Population": 2610000,
+  "Precipitation (mm)": 675,
+  "posX": 1615,
+  "posY": 700
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08933"
+  },
+  "Area No": {
+    "": 13
+  },
+  "Name": "Lahore",
+  "Altitude (m)": 227.5,
+  "Slope ": 0.006,
+  "Latitude": 25.3924,
+  "Longitude": 68.3737,
+  "Rainfall_Intensity (mm)": 70.3,
+  "Area (m^2)": 404000000,
+  "Runoff_Coefficient": 0.725,
+  "Water_Use (litre per capita)": 200,
+  "Average_Temperature (Celsius)": 24.5,
+  "Total_Water (litres)": {
+    "$numberLong": "2390000000"
+  },
+  "Population": 15238000,
+  "Precipitation (mm)": 650,
+  "posX": 1630,
+  "posY": 805
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08934"
+  },
+  "Area No": {
+    "": 14
+  },
+  "Name": "Abbottabad",
+  "Altitude (m)": 1256,
+  "Slope ": 0.157,
+  "Latitude": 30.1968,
+  "Longitude": 71.4782,
+  "Rainfall_Intensity (mm)": 69,
+  "Area (m^2)": 32000000,
+  "Runoff_Coefficient": 0.625,
+  "Water_Use (litre per capita)": 100,
+  "Average_Temperature (Celsius)": 16.5,
+  "Total_Water (litres)": 14400000,
+  "Population": 300000,
+  "Precipitation (mm)": 1300,
+  "posX": 1510,
+  "posY": 430
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08935"
+  },
+  "Area No": {
+    "": 15
+  },
+  "Name": "Gilgit",
+  "Altitude (m)": 1500,
+  "Slope ": 0.273,
+  "Latitude": 24.8607,
+  "Longitude": 67.0011,
+  "Rainfall_Intensity (mm)": 45,
+  "Area (m^2)": 18000000,
+  "Runoff_Coefficient": 0.55,
+  "Water_Use (litre per capita)": 85,
+  "Average_Temperature (Celsius)": 12,
+  "Total_Water (litres)": 4540000,
+  "Population": 180000,
+  "Precipitation (mm)": 200,
+  "posX": 1650,
+  "posY": 200
+},
+{
+  "_id": {
+    "$oid": "69dfb4b1bd043898b7b08936"
+  },
+  "Area No": {
+    "": 16
+  },
+  "Name": "Skardu",
+  "Altitude (m)": 2363,
+  "Slope ": 0.006090909,
+  "Latitude": 27.7244,
+  "Longitude": 68.8228,
+  "Rainfall_Intensity (mm)": 50,
+  "Area (m^2)": 77000000,
+  "Runoff_Coefficient": 0.5,
+  "Water_Use (litre per capita)": 80,
+  "Average_Temperature (Celsius)": 11,
+  "Total_Water (litres)": 11700000,
+  "Population": 110000,
+  "Precipitation (mm)": 175,
+  "posX": 1775,
+  "posY": 250
+}]

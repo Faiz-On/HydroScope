@@ -1,3 +1,6 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
 const { useState, useCallback, useEffect } = React;
 
 // Pakistan geographic bounds (latitude, longitude)
@@ -383,8 +386,8 @@ function App(){
     setError(null);
     
     Promise.all([
-      fetch('../assets/HydroScopeCollection.json'),
-      fetch('../assets/Map_of_Pakistan_(2018).svg')
+      fetch('/assets/HydroScopeCollection.json'),
+      fetch('/assets/Map_of_Pakistan_(2018).svg')
     ])
     .then(responses => {
       if (!responses[0].ok || !responses[1].ok) {
