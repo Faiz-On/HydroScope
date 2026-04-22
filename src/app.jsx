@@ -560,16 +560,13 @@ function App(){
           <svg viewBox="0 0 2362 1888" className="map-svg" preserveAspectRatio="none">
             <defs>
               <filter id="mapfilter">
-                <feColorMatrix type="saturate" values="0.5"/>
-                <feColorMatrix type="hueRotate" values="200"/>
-                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0.3 0 0 0.8 0 0.5 0 0 1.0 0 0 0 1 0"/>
+                <feColorMatrix type="saturate" values="0.7"/>
                 <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.25"/>
+                  <feFuncA type="linear" slope="0.4"/>
                 </feComponentTransfer>
-                <feBlend mode="multiply" in2="BackgroundImage"/>
               </filter>
               <radialGradient id="mapglow" cx="50%" cy="50%">
-                <stop offset="0%" stopColor="rgba(0,150,220,0.15)"/>
+                <stop offset="0%" stopColor="rgba(0,150,220,0.02)"/>
                 <stop offset="100%" stopColor="transparent"/>
               </radialGradient>
             </defs>
@@ -580,14 +577,13 @@ function App(){
               <image href="../assets/Map_of_Pakistan_(2018).svg" x="0" y="0" width="2362" height="1888"
                 opacity="0.6" pointerEvents="none"
                 style={{
-                  filter: 'url(#mapfilter)',
                   imageRendering: 'optimizeQuality',
                   mixBlendMode: 'multiply'
                 }}
               />
 
               {/* Additional overlay glow */}
-              <ellipse cx="1181" cy="944" rx="900" ry="800" fill="url(#mapglow)" opacity="0.3"/>
+              <ellipse cx="1181" cy="944" rx="900" ry="800" fill="url(#mapglow)" opacity="0"/>
             </g>
 
             {/* Interactive cities layer with zoom/pan */}
